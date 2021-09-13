@@ -7,8 +7,6 @@ PNG图片转为字符画
 ## 本项目目前并不完善，有些图片可能读取不太精确，经测试 iconfont 基本都能完美读取
 
 ### 效果展示
+![demo](https://user-images.githubusercontent.com/35286999/133013229-062ff65b-c371-453c-a642-2847348e5f68.gif)
 
-
-
-https://user-images.githubusercontent.com/35286999/133011982-2c9a0f3b-4a00-45b2-9b23-2d94da0f174c.mp4
 
