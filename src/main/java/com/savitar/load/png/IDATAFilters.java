@@ -43,8 +43,10 @@ public enum IDATAFilters {
         byte origA = ref == 0 ? 0 : matrix.getRow().getItem()[ref - 1];
         byte origB = matrix.getRow().getPrev().getItem()[ref];
         byte origC = ref == 0 ? 0 : matrix.getRow().getPrev().getItem()[ref - 1];
-        matrix.add(b);
-        return (byte) (b + IDATAFilters.minGradient(origA, origB, origC)) & 0xFF;
+        byte b1 = IDATAFilters.minGradient(origA, origB, origC);
+        byte v = (byte) (b + b1);
+        matrix.add(v);
+        return v & 0xFF;
     });
 
     private byte code;
@@ -65,11 +67,11 @@ public enum IDATAFilters {
     }
 
     private static byte minGradient(byte a, byte b, byte c) {
-        int p = a + b + c;
+        int p = a + b - c;
         int pa = Math.abs(p - a);
         int pb = Math.abs(p - b);
         int pc = Math.abs(p - c);
-        int pr = 0;
+        int pr ;
         if (pa <= pb && pa <= pc) {
             pr = a;
         } else if (pb <= pc) {

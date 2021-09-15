@@ -8,6 +8,7 @@ import com.savitar.load.Picture;
 import com.savitar.load.png.ByteMatrix;
 import com.savitar.load.png.IDATAFilters;
 import com.savitar.load.png.PNGColorType;
+import com.savitar.structure.png.ColorType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -35,7 +36,6 @@ public class LoadPngPic extends Picture implements LoadPic {
     @Override
     public Picture load() throws IOException {
         Picture picture = doLoad();
-        picture.getBuffer().mark();
         if (!validate(picture.getBuffer()::getLong, PNG_HEAD)) {
             throw new FileFormatErrorException("File format is must be PNG!");
         }
@@ -45,7 +45,38 @@ public class LoadPngPic extends Picture implements LoadPic {
 
     private void read(Picture picture) {
         readHead(picture);
+        picture.getBuffer().mark();
+        readPLTE(picture);
+        picture.getBuffer().reset();
         readIDAT(picture);
+    }
+
+    private void readPLTE(Picture picture) {
+        ByteBuffer buffer = picture.getBuffer();
+        byte colorType = picture.getColorType();
+        byte[] datas; // 用来存放PLTE的数据
+        //PLTE块必须出现在 颜色类型3中 2和6中也可以出现 其他不会出现
+        if (colorType == PNGColorType.TRUE_COLOR || colorType == PNGColorType.A_CHANNEL_TRUE_COLOR) {
+            int identifi;
+            do {
+                datas = new byte[buffer.getInt() + 4]; // 此处buffer.getInt()获取的是数据块的长度
+                identifi = buffer.getInt(); // 获取标识位
+                buffer.get(datas);
+            } while (identifi != PLTE && identifi != IDAT);
+            if (identifi == IDAT) return;
+        }
+        if(colorType == PNGColorType.INDEX_COLOR) {
+            int identifi;
+            do {
+                datas = new byte[buffer.getInt() + 4]; // 此处buffer.getInt()获取的是数据块的长度
+                identifi = buffer.getInt(); // 获取标识位
+                buffer.get(datas);
+            } while (identifi != PLTE);
+            System.out.println();
+        }
+        System.out.println();
+
+
     }
 
     /**
