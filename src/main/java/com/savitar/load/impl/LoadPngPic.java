@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.function.Function;
 
 /*
@@ -48,7 +49,11 @@ public class LoadPngPic extends Picture implements LoadPic {
         picture.getBuffer().mark();
         readPLTE(picture);
         picture.getBuffer().reset();
-        readIDAT(picture);
+        try {
+            readIDAT(picture);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void readPLTE(Picture picture) {
@@ -65,7 +70,7 @@ public class LoadPngPic extends Picture implements LoadPic {
             } while (identifi != PLTE && identifi != IDAT);
             if (identifi == IDAT) return;
         }
-        if(colorType == PNGColorType.INDEX_COLOR) {
+        if (colorType == PNGColorType.INDEX_COLOR) {
             int identifi;
             do {
                 datas = new byte[buffer.getInt() + 4]; // 此处buffer.getInt()获取的是数据块的长度
@@ -84,17 +89,11 @@ public class LoadPngPic extends Picture implements LoadPic {
      *
      * @param picture
      */
-    private void readIDAT(Picture picture) {
+    private void readIDAT(Picture picture) throws IOException {
         ByteBuffer buffer = picture.getBuffer();
         int length = buffer.getInt();
-        int identifi = buffer.getInt();
-        if (identifi != IDAT) {
-            buffer.get(new byte[length + 4]);
-            readIDAT(picture);
-            return;
-        }
-        byte[] data = new byte[length];
-        buffer.get(data);
+        //递归查找所有IDAT数据块
+        byte[] data = findIDAT(buffer, length, new byte[0], false);
         byte[] decompress = ZLibUtils.decompress(data);
         byte colorType = picture.getColorType();
         if (PNGColorType.TRUE_COLOR == colorType) { // 真彩图像
@@ -105,6 +104,25 @@ public class LoadPngPic extends Picture implements LoadPic {
             this.matrix = ByteMatrix.getInstance(picture.getWidth() * 4);
             print(this::aTrueColorPrint, ByteUtil.toByteBuffer(decompress), picture);
         }
+    }
+
+    //寻找IDAT数据块
+    private byte[] findIDAT(ByteBuffer buffer, int length, byte[] datas, boolean flag) {
+        int identifi = buffer.getInt();
+        if (identifi != IDAT) {
+            if (flag) {
+                return datas;
+            }
+            buffer.get(new byte[length + 4]);
+            return findIDAT(buffer, buffer.getInt(), datas, false);
+        }
+        byte[] newData = new byte[length];
+        buffer.get(newData);
+        // 将结果合并
+        byte[] result = Arrays.copyOf(datas, datas.length + newData.length);
+        System.arraycopy(newData, 0, result, datas.length, newData.length);
+        buffer.getInt(); //CRC
+        return findIDAT(buffer, buffer.getInt(), result, true);
     }
 
     //带α通道数据的真彩色图像打印

@@ -26,7 +26,6 @@ public abstract class Picture {
     private byte filterMethod; //过滤器方法
     private byte interlaceMethod; //各行扫描方法
     private ByteBuffer buffer;
-
     private final String asciiChar = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~<>i!lI;:,^`'.";
 
     private Path path;

@@ -2,9 +2,6 @@ package com.savitar.common.utils;
 
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -63,37 +60,28 @@ public class ZLibUtils {
     }
 
     //解压缩 字节数组
-    public static byte[] decompress(byte[] data) {
-        byte[] output = new byte[0];
-
-        Inflater decompresser = new Inflater();
-        decompresser.reset();
-        decompresser.setInput(data);
-
-        ByteArrayOutputStream o = new ByteArrayOutputStream(data.length);
+    public static byte[] decompress(byte[] inputByte) throws IOException {
+        int len = 0;
+        Inflater infl = new Inflater();
+        infl.setInput(inputByte);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        byte[] outByte = new byte[1024];
         try {
-            byte[] buf = new byte[1024];
-            while (!decompresser.finished()) {
-                int i = decompresser.inflate(buf);
-                if(i == 0) {
+            while (!infl.finished()) {
+                // 解压缩并将解压缩后的内容输出到字节输出流bos中
+                len = infl.inflate(outByte);
+                if (len == 0) {
                     break;
                 }
-                o.write(buf, 0, i);
+                bos.write(outByte, 0, len);
             }
-            output = o.toByteArray();
+            infl.end();
         } catch (Exception e) {
-            output = data;
-            e.printStackTrace();
+            //
         } finally {
-            try {
-                o.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            bos.close();
         }
-
-        decompresser.end();
-        return output;
+        return bos.toByteArray();
     }
 
     //解压缩 输入流 到字节数组
