@@ -28,6 +28,16 @@ public class LoadPngPic extends Picture implements LoadPic {
     private static final int IDAT = 0x49444154;
     private static final int IEND = 0x49454e44;
 
+    static final int[] inputBandsForColorType = {
+            1, // gray
+            -1, // unused
+            3, // rgb
+            1, // palette
+            2, // gray + alpha
+            -1, // unused
+            4  // rgb + alpha
+    };
+
     private static ByteMatrix matrix = null;
 
     public LoadPngPic(String path) {
@@ -96,12 +106,16 @@ public class LoadPngPic extends Picture implements LoadPic {
         byte[] data = findIDAT(buffer, length, new byte[0], false);
         byte[] decompress = ZLibUtils.decompress(data);
         byte colorType = picture.getColorType();
+        int inputBands = picture.getDepth() == 16 ? 2 : 1;
+        int bpp = inputBands *= inputBandsForColorType[picture.getColorType()];
         if (PNGColorType.TRUE_COLOR == colorType) { // 真彩图像
             this.matrix = ByteMatrix.getInstance(picture.getWidth() * 3);
+            this.matrix.setBpp(bpp);
             print(this::trueColorPrint, ByteUtil.toByteBuffer(decompress), picture);
         }
         if (PNGColorType.A_CHANNEL_TRUE_COLOR == colorType) { // 带α通道数据的真彩色图像
             this.matrix = ByteMatrix.getInstance(picture.getWidth() * 4);
+            this.matrix.setBpp(bpp);
             print(this::aTrueColorPrint, ByteUtil.toByteBuffer(decompress), picture);
         }
     }

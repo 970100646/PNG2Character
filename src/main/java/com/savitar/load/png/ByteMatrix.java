@@ -11,6 +11,7 @@ public class ByteMatrix {
     private Line row;
     private int width;
     private int size;
+    private int bpp;
 
     private static volatile ByteMatrix matrix;
 

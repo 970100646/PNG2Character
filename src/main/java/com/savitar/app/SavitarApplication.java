@@ -14,7 +14,7 @@ import java.nio.file.StandardOpenOption;
 public class SavitarApplication {
     public static void main(String[] args) {
         try {
-            String path = "D:/temp/2457331_205259144000_2.png";
+            String path = "D:/temp/鸡.png";
             LoadPngPic loadPngPic = new LoadPngPic(path);
             Picture picture = loadPngPic.load();
             System.out.println(picture);
